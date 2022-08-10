@@ -1,0 +1,14 @@
+preprocessing:
+  data_path: ./data/resume_data/
+  split_ratio: 0.2
+  random_state: 0
+  # pretrained_embedding:     #path_like
+  embedding_col: 200
+  max_len: 64      # 按照 前期观察 主要文本长度 集中在 30 左右， 建议 64
+  converter: ok
+  # word_dict: ../data/word_dictionaries/
+  
+
+
+
+

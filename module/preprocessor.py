@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from keras.utils import pad_sequences
 from utils.utils import show_parameters, clean_data
-from utils.jieba_emb import pretrained_embdding
+from utils.jieba_emb import pretrained_embdding, tokenizer
 
 
 class Preprocessor:
@@ -50,8 +50,8 @@ class Preprocessor:
 
         orig_data = self.df
         self.train_data, self.trian_label = self._parse_orig_data(orig_data)
-        # 需要 填充nan吗？
-        # orig_data['resume'].fillna('unknown', inplace=True)
+
+
         self.logger.info('Splitting datasets, the splits ratio is {}, random state is {}'.format(self.config['split_ratio'],
                                                                                                 self.config['random_state']))
         # 划分 数据集                                                                                        
@@ -76,6 +76,7 @@ class Preprocessor:
         label = orig_data['label'].values
 
         train_data = clean_data(train_data).values         # 数据清洗
+        train_data = tokenizer(train_data).values          # 分词
         return train_data, label
 
 
@@ -95,6 +96,7 @@ class Preprocessor:
 
         if convertor == 'ok':
             train_x, val_x = self.nn_text2vec(train_x, val_x)
+
         
         return train_x, val_x, train_y, val_y
 
@@ -120,21 +122,21 @@ class Preprocessor:
             self.idx2word[index] = word
             self.embedding_matrix[index] = embedding[word]      #导入
 
-        self.logger.info("Done. Got {} words".format(len(self.word2ind.keys())))
+        self.logger.info("Done. Got {} words".format(len(self.word2idx.keys())))
         
-        # paddding 成 长度一致的 sequence
+        # paddding 成 长度一致的 sequence           需要重新分词嘛？
         self.logger.info("Preparing data for training...")
         train_x_idx = []
         for sentence in train_x:
             indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence]
             train_x_idx.append(indices)
-        train_x_idx = np.array(train_x_idx)
+        # train_x_idx = np.array(train_x_idx)
 
         val_x_idx = []
         for sentence in val_x:
             indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence]
             val_x_idx.append(indices)
-        val_x_idx = np.array(val_x_idx)
+        # val_x_idx = np.array(val_x_idx)
 
         train_x_in = pad_sequences(train_x_idx,
                                     maxlen=self.config['max_len'],

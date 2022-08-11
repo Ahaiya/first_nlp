@@ -30,6 +30,7 @@ if __name__ == '__main__':
             config = yaml.safe_load(cfg)
             # print(config['preprocessing']['data_path'])
             preprocessor = Preprocessor(config['preprocessing'], logger)
+            preprocessor.process()
             # print(preprocessor.df)
 
         except yaml.YAMLError as err:

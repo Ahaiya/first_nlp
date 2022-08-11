@@ -5,7 +5,7 @@ preprocessing:
   # pretrained_embedding:     #path_like
   embedding_col: 200
   max_len: 64      # 按照 前期观察 主要文本长度 集中在 30 左右， 建议 64
-  converter: ok
+  convertor: ok
   # word_dict: ../data/word_dictionaries/
   
 

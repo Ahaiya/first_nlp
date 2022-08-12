@@ -15,15 +15,12 @@ def pretrained_embdding(train_data):
         words = line.split(' ')
         vocab.extend(words)
     vocab = set(vocab)
-    vocab.pop()
 
     word_embedding = Word2Vec("w2v-light-tencent-chinese").encode(vocab)
     all_embedding = {}
     for word, embdding in zip(vocab, word_embedding):
         all_embedding[word] = embdding
     pre_embedding = pd.DataFrame(data=all_embedding)
-
-    # 不会保存。。。。
 
     return all_embedding, pre_embedding
 

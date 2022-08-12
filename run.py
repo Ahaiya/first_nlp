@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 from module.preprocessor import Preprocessor
+from module.trainer import Trainer
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Processing command line")
@@ -25,13 +26,21 @@ if __name__ == '__main__':
     stdout_handler = logging.StreamHandler(sys.stdout)
     logger.addHandler(stdout_handler)
 
+    classes = []
+
     with open(args.config) as cfg:
         try:
             config = yaml.safe_load(cfg)
-            # print(config['preprocessing']['data_path'])
             preprocessor = Preprocessor(config['preprocessing'], logger)
-            preprocessor.process()
-            # print(preprocessor.df)
+            train_x, train_y, val_x, val_y = preprocessor.process()
+            vocab_size = preprocessor.vocab_size
+            pretrained_embdding = preprocessor.embedding_matrix
+
+            trainer = Trainer(config['training'], classes, logger, vocab_size, pretrained_embdding)
+            model, accuracy, cls_report, history = trainer.fit_and_validate(train_x, train_y, val_x, val_y)
+
+            logger.info("Accuracy : {}".format(accuracy))
+            logger.info("\n{}\n".format(cls_report))
 
         except yaml.YAMLError as err:
             print("config file error : {}".format(err))

@@ -91,14 +91,14 @@ class Preprocessor:
 
 
     def process(self):
-        convertor = self.config['convertor']
+        converter = self.config['converter']
         train_x, val_x, train_y, val_y = self.train_x, self.val_x, self.train_y, self.val_y
 
-        if convertor == 'ok':
+        if converter == 'ok':
             train_x, val_x = self.nn_text2vec(train_x, val_x)
 
         
-        return train_x, val_x, train_y, val_y
+        return train_x, train_y, val_x, val_y
 
 
     def nn_text2vec(self, train_x, val_x):
@@ -124,19 +124,19 @@ class Preprocessor:
 
         self.logger.info("Done. Got {} words".format(len(self.word2idx.keys())))
         
-        # paddding 成 长度一致的 sequence           需要重新分词嘛？
+        # paddding 成 长度一致的 sequence
         self.logger.info("Preparing data for training...")
         train_x_idx = []
         for sentence in train_x:
-            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence]
+            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence.split(' ')]
             train_x_idx.append(indices)
         # train_x_idx = np.array(train_x_idx)
 
         val_x_idx = []
         for sentence in val_x:
-            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence]
+            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence.split(' ')]
             val_x_idx.append(indices)
-        # val_x_idx = np.array(val_x_idx)
+        # val_x_idx = np.array(val_x_idx, dtype=object)
 
         train_x_in = pad_sequences(train_x_idx,
                                     maxlen=self.config['max_len'],

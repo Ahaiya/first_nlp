@@ -26,21 +26,24 @@ if __name__ == '__main__':
     stdout_handler = logging.StreamHandler(sys.stdout)
     logger.addHandler(stdout_handler)
 
-    classes = []
+    classes = ["Personal_Info", "Job_Intent", "Education", "Working_Experience", "Projects", "Skill", "Introduction",
+               "Key_Word", "Others"]
 
     with open(args.config) as cfg:
         try:
             config = yaml.safe_load(cfg)
+            # print(config['preprocessing']['data_path'])
             preprocessor = Preprocessor(config['preprocessing'], logger)
-            train_x, train_y, val_x, val_y = preprocessor.process()
+            train_x, validate_x, train_y, validate_y= preprocessor.process()
             vocab_size = preprocessor.vocab_size
-            pretrained_embdding = preprocessor.embedding_matrix
+            #print(vocab_size)
+            pretrained_embedding = preprocessor.embedding_matrix
 
-            trainer = Trainer(config['training'], classes, logger, vocab_size, pretrained_embdding)
-            model, accuracy, cls_report, history = trainer.fit_and_validate(train_x, train_y, val_x, val_y)
-
+            trainer = Trainer(config['training'], classes, logger, vocab_size, pretrained_embedding)
+            model, accuracy, cls_report, history = trainer.fit_and_validate(train_x, train_y, validate_x, validate_y)
             logger.info("Accuracy : {}".format(accuracy))
             logger.info("\n{}\n".format(cls_report))
+
 
         except yaml.YAMLError as err:
             print("config file error : {}".format(err))

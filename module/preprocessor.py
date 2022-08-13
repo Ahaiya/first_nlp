@@ -2,10 +2,10 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from tensorflow import keras
 from keras.utils import pad_sequences
 from utils.utils import show_parameters, clean_data
 from utils.jieba_emb import pretrained_embdding, tokenizer
+from keras.utils.np_utils import to_categorical
 
 
 class Preprocessor:
@@ -68,17 +68,23 @@ class Preprocessor:
         data['resume'] = data['resume'].astype(str)
         data['label_detail'] = data['label_detail'].astype(str)
         data['label'] = data['label_detail'].str.split("-").str.get(0)
+        ls = data.loc[data['label'].str.len() == 0, 'label'].tolist()
+        if len(ls) != 0:
+            print(file)
         self.df = pd.concat([self.df, data])
 
     def _parse_orig_data(self, orig_data):
         self.logger.info('Parsing original resume dataset...')
+        orig_data.drop(orig_data[~orig_data.label.str.isdigit()].index, inplace=True)
+        orig_data['label'] = orig_data['label'].astype(int) - 1
+
+        orig_data.drop(orig_data[(orig_data.label < 0) | (orig_data.label > 9)].index, inplace=True)
         train_data = orig_data['resume']
         label = orig_data['label'].values
-
+        label = to_categorical(label, num_classes=9)
         train_data = clean_data(train_data).values         # 数据清洗
         train_data = tokenizer(train_data).values          # 分词
         return train_data, label
-
 
 
 # 词嵌入,  暂时不考虑 测试集
@@ -88,18 +94,14 @@ class Preprocessor:
         train_data = self.train_data
         return pretrained_embdding(train_data)
 
-
-
     def process(self):
-        converter = self.config['converter']
+        convertor = self.config['convertor']
         train_x, val_x, train_y, val_y = self.train_x, self.val_x, self.train_y, self.val_y
 
-        if converter == 'ok':
+        if convertor == 'ok':
             train_x, val_x = self.nn_text2vec(train_x, val_x)
 
-        
-        return train_x, train_y, val_x, val_y
-
+        return train_x, val_x, train_y, val_y
 
     def nn_text2vec(self, train_x, val_x):
         self.logger.info("Vecterizing data for neural network training...")
@@ -124,19 +126,19 @@ class Preprocessor:
 
         self.logger.info("Done. Got {} words".format(len(self.word2idx.keys())))
         
-        # paddding 成 长度一致的 sequence
+        # paddding 成 长度一致的 sequence           需要重新分词嘛？
         self.logger.info("Preparing data for training...")
         train_x_idx = []
         for sentence in train_x:
-            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence.split(' ')]
+            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence]
             train_x_idx.append(indices)
         # train_x_idx = np.array(train_x_idx)
 
         val_x_idx = []
         for sentence in val_x:
-            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence.split(' ')]
+            indices = [self.word2idx.get(word, self.word2idx['<unk>']) for word in sentence]
             val_x_idx.append(indices)
-        # val_x_idx = np.array(val_x_idx, dtype=object)
+        # val_x_idx = np.array(val_x_idx)
 
         train_x_in = pad_sequences(train_x_idx,
                                     maxlen=self.config['max_len'],
@@ -151,7 +153,9 @@ class Preprocessor:
 
 
     # @staticmethod
-    # def load_word_embedding(filename):
+    # def loa
+    #
+    # d_word_embedding(filename):
     #     # 这里 假设 第一个是 token，后面的 是 该token 的 vec
     #     file_in = io.open(filename, 'r', encoding='utf-8', newline='\n', errors='ignore')
     #     data = {}

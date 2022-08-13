@@ -36,5 +36,4 @@ class Trainer:
         predictions, fitted = self.model.fit_and_validate(train_x, train_y, validate_x, validate_y)
         accuracy, report = self.metrics(predictions, validate_y)
         return self.model, accuracy, report, fitted
-        
 

@@ -9,6 +9,7 @@ from keras.utils.np_utils import to_categorical
 
 class BiDirectLSTM:
     def __init__(self, config, classes, vocab_size, logger, embedding_matrix):
+        self.models = {}
         self.logger = logger
         self.vocab_size = vocab_size
         self.config = config
@@ -40,15 +41,15 @@ class BiDirectLSTM:
                                   input_length=self.config['max_len'],
                                   trainable=True)
 
-        x = embedding(inputs)               #(B, max_len, embedding_col)
+        x = embedding(inputs)
         x = SpatialDropout1D(0.2)(x)
-        x = Bidirectional(LSTM(32, return_sequences=True, dropout=0.1, recurrent_dropout=0.1))(x)       #(B, max_len, 32)
-        x = Bidirectional(GRU(32, return_sequences=True, dropout=0.1, recurrent_dropout=0.1))(x)        #(B, max_len, 32)
+        x = Bidirectional(LSTM(32, return_sequences=True, dropout=0.1, recurrent_dropout=0.1))(x)
+        x = Bidirectional(GRU(32, return_sequences=True, dropout=0.1, recurrent_dropout=0.1))(x)
         #x = Conv1D(64, kernel_size=3, padding='valid', kernel_initializer='glorot_uniform')(x)
-        avg_pooling = GlobalAveragePooling1D()(x)           #(B, 32)
-        max_pooling = GlobalMaxPooling1D()(x)               #(B, 32)
-        x = concatenate([avg_pooling, max_pooling])         #(B, 64)
-        outputs = Dense(self.nums_class, activation='softmax')(x)   #(B, nums_class)
+        avg_pooling = GlobalAveragePooling1D()(x)
+        max_pooling = GlobalMaxPooling1D()(x)
+        x = concatenate([avg_pooling, max_pooling])
+        outputs = Dense(self.nums_class, activation='softmax')(x)
         model = Model(inputs=inputs, outputs=outputs)
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         model.summary()
@@ -68,6 +69,10 @@ class BiDirectLSTM:
         return predictions, history
 
     def predict(self, validate_x):
-        predictions = self.model.predict_classes(validate_x)
+        predictions = self.model.predict(validate_x)
         prediction_ = np.argmax(to_categorical(predictions), axis=1)
         return prediction_
+
+
+
+

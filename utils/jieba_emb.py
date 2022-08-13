@@ -1,11 +1,10 @@
 import jieba
 import os
 import pandas as pd
-import numpy as np
 import sys
-from text2vec import SentenceModel, EncoderType
 from text2vec import Word2Vec
 sys.path.append('..')
+
 
 def pretrained_embdding(train_data):
 
@@ -15,6 +14,7 @@ def pretrained_embdding(train_data):
         words = line.split(' ')
         vocab.extend(words)
     vocab = set(vocab)
+    vocab.pop()
 
     word_embedding = Word2Vec("w2v-light-tencent-chinese").encode(vocab)
     all_embedding = {}
@@ -22,6 +22,7 @@ def pretrained_embdding(train_data):
         all_embedding[word] = embdding
     pre_embedding = pd.DataFrame(data=all_embedding)
 
+    # 不会保存。。。。
     return all_embedding, pre_embedding
 
 
@@ -53,7 +54,5 @@ def tokenizer(train_data):
     #     seg_data = pd.read_csv('./seg_word/seg_data.csv', sep=',',header=None, squeeze=True).astype(str)
     # else:
     #     seg_data.to_csv('./seg_word/seg_data.csv', sep=',', header=False, index=False)
-        
-
     return seg_data
 

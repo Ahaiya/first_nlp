@@ -15,4 +15,4 @@ training:
   embedding_col: 200
   max_len: 64
   optimizer: adam
-  epochs: 2
+  epochs: 1

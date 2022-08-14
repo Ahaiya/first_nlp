@@ -70,7 +70,7 @@ class BiDirectLSTM:
 
     def predict(self, validate_x):
         predictions = self.model.predict(validate_x)
-        prediction_ = np.argmax(to_categorical(predictions), axis=1)
+        prediction_ = to_categorical(np.argmax(predictions, axis=1))
         return prediction_
 
 
